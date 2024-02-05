@@ -25,7 +25,7 @@ const app = Vue.createApp({
                 loadingItem: '',
             },
             products: [],
-            product: {},
+            tempProduct: {},
             form: {
                 user: {
                     name: '',
@@ -40,6 +40,7 @@ const app = Vue.createApp({
     },
     methods: {
         getProducts() {
+            //取得產品列表
             const url = `${apiUrl}/api/${apiPath}/products`;
             axios.get(url).then((response) => {
                 this.products = response.data.products;
@@ -47,30 +48,27 @@ const app = Vue.createApp({
                 alert(err.response.data.message);
             });
         },
-        getProduct(id) {
-            const url = `${apiUrl}/api/${apiPath}/product/${id}`;
-            this.loadingStatus.loadingItem = id;
-            axios.get(url).then((response) => {
-                this.loadingStatus.loadingItem = '';
-                this.product = response.data.product;
-                this.$refs.userProductModal.openModal();
-            }).catch((err) => {
-                alert(err.response.data.message);
-            });
+        openModal(product) {
+            //查看商品詳細
+            this.loadingStatus.loadingItem = '';
+            this.tempProduct = product;
+            this.$refs.userProductModal.qty = 1;
+            this.$refs.userProductModal.openModal();
         },
         addToCart(id, qty = 1) {
-            const url = `${apiUrl}/api/${apiPath}/cart`;
+            //加入購物車
             this.loadingStatus.loadingItem = id;
+            //帶入訂單資訊
             const cart = {
                 product_id: id,
                 qty,
             };
-
+            const url = `${apiUrl}/api/${apiPath}/cart`;
             this.$refs.userProductModal.hideModal();
             axios.post(url, { data: cart }).then((response) => {
                 alert(response.data.message);
                 this.loadingStatus.loadingItem = '';
-                this.getCart();
+                this.getCart(); //重新渲染購物車列表
             }).catch((err) => {
                 alert(err.response.data.message);
             });
@@ -78,6 +76,7 @@ const app = Vue.createApp({
         updateCart(data) {
             this.loadingStatus.loadingItem = data.id;
             const url = `${apiUrl}/api/${apiPath}/cart/${data.id}`;
+            //帶入訂單資訊
             const cart = {
                 product_id: data.product_id,
                 qty: data.qty,
@@ -85,7 +84,7 @@ const app = Vue.createApp({
             axios.put(url, { data: cart }).then((response) => {
                 alert(response.data.message);
                 this.loadingStatus.loadingItem = '';
-                this.getCart();
+                this.getCart(); //重新渲染購物車列表
             }).catch((err) => {
                 alert(err.response.data.message);
                 this.loadingStatus.loadingItem = '';
@@ -95,7 +94,7 @@ const app = Vue.createApp({
             const url = `${apiUrl}/api/${apiPath}/carts`;
             axios.delete(url).then((response) => {
                 alert(response.data.message);
-                this.getCart();
+                this.getCart(); //重新渲染購物車列表
             }).catch((err) => {
                 alert(err.response.data.message);
             });
@@ -114,18 +113,18 @@ const app = Vue.createApp({
             axios.delete(url).then((response) => {
                 alert(response.data.message);
                 this.loadingStatus.loadingItem = '';
-                this.getCart();
+                this.getCart(); //重新渲染購物車列表
             }).catch((err) => {
                 alert(err.response.data.message);
             });
         },
         createOrder() {
             const url = `${apiUrl}/api/${apiPath}/order`;
-            const order = this.form;
+            const order = this.form; //宣告變數存放API需要的表單資料
             axios.post(url, { data: order }).then((response) => {
                 alert(response.data.message);
-                this.$refs.form.resetForm();
-                this.getCart();
+                this.$refs.form.resetForm(); //清空表單欄位的內容
+                this.getCart(); //重新渲染購物車列表
             }).catch((err) => {
                 alert(err.response.data.message);
             });
